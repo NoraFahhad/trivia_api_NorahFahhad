@@ -24,7 +24,7 @@ def create_app(test_config=None):
   setup_db(app)
   
   '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  @DONE: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
   CORS(app, resources={r"/api/*": {"origins": "*"}})
 
@@ -33,7 +33,7 @@ def create_app(test_config=None):
   def samplerout():
     return jsonify({'message':'Hello'})
   '''
-  @TODO: Use the after_request decorator to set Access-Control-Allow
+  @DONE: Use the after_request decorator to set Access-Control-Allow
   '''
   @app.after_request
   def after_request(response):
@@ -42,7 +42,7 @@ def create_app(test_config=None):
     return response
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
@@ -59,7 +59,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to handle GET requests for questions, 
   including pagination (every 10 questions). 
   This endpoint should return a list of questions, 
@@ -85,7 +85,6 @@ def create_app(test_config=None):
     return jsonify({
       'success': True,
       'questions': current_questions,
-      'current_category': current_category,
       'total_questions': len(Question.query.all()),
       'categories': categories
       
@@ -94,7 +93,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to DELETE question using a question ID. 
 
   TEST: When you click the trash icon next to a question, the question will be removed.
@@ -125,7 +124,7 @@ def create_app(test_config=None):
     
 
   '''
-  @TODO: 
+  @DONE: 
   Create an endpoint to POST a new question, 
   which will require the question and answer text, 
   category, and difficulty score.
@@ -162,7 +161,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
+  @DONE: 
   Create a POST endpoint to get questions based on a search term. 
   It should return any questions for whom the search term 
   is a substring of the question. 
@@ -193,7 +192,7 @@ def create_app(test_config=None):
 
 
   '''
-  @TODO: 
+  @DONE: 
   Create a GET endpoint to get questions based on category. 
 
   TEST: In the "List" tab / main screen, clicking on one of the 
@@ -212,7 +211,7 @@ def create_app(test_config=None):
     })
 
   '''
-  @TODO: 
+  @DONE: 
   Create a POST endpoint to get questions to play the quiz. 
   This endpoint should take category and previous question parameters 
   and return a random questions within the given category, 
@@ -231,13 +230,15 @@ def create_app(test_config=None):
     query = Question.query.filter(Question.id.notin_(previous_questions))
 
     if(category['id'] == 0):
-      questions = [question for question in (question.format() for question in query)]
+      questions = [question for question in (question for question in query)]
     else:
       questions_filtered = query.filter(Question.category == category_id)
-      questions = [question for question in questions_filtered]
+      questions = [question for question in (q for q in questions_filtered)]
     
-    question = random.choice(questions)
-
+    if len(questions) > 0:
+      question = random.choice(questions)
+    else:
+      question = ''
     return jsonify({
       'success':True,
       'question': question.format()
@@ -276,7 +277,13 @@ def create_app(test_config=None):
       "message": "Method not allowed"
     })
 
-
+  @app.errorhandler(500)
+  def not_allowed(error):
+    return jsonify({
+      "success": False,
+      "error": 500,
+      "message": "Server error"
+    })
   
   return app
 

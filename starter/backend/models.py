@@ -1,7 +1,6 @@
 import os
 from sqlalchemy import Column, String, Integer, create_engine
 from flask_sqlalchemy import SQLAlchemy
-from flask_serialize import FlaskSerializeMixin
 import json
 
 database_name = "trivia"
@@ -24,7 +23,7 @@ def setup_db(app, database_path=database_path):
 Question
 
 '''
-class Question(db.Model,FlaskSerializeMixin):  
+class Question(db.Model):  
   __tablename__ = 'questions'
 
   id = Column(Integer, primary_key=True)

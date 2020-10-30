@@ -31,6 +31,8 @@ class TriviaTestCase(unittest.TestCase):
             'category': 2,
             'difficulty': 3
         }
+
+        
     
     def tearDown(self):
         """Executed after reach test"""
@@ -47,7 +49,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertTrue(data['categories'])
 
-    def test_get_questions(self):
+    def test_get_questions_success(self):
         res = self.client().get('/questions')
         data = json.loads(res.data)
 
@@ -56,20 +58,38 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['questions'])
         self.assertTrue(data['total_questions'])
         self.assertTrue(data['categories'])
-
-    def test_delete_question(self):
-        res = self.client().delete('/questions/2')
+    
+    def test_get_questions_failure(self):
+        res = self.client().get('/questions?page=1000')
         data = json.loads(res.data)
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'],False)
+        self.assertEqual(data['message'], "resource not found")
 
-        question = Question.query.filter(Question.id == 1).one_or_none()
 
+    # def test_delete_question_success(self):
+    #     res = self.client().delete('/questions/2')
+    #     data = json.loads(res.data)
+
+    #     question = Question.query.filter(Question.id == 1).one_or_none()
+
+    #     self.assertEqual(res.status_code, 200)
+    #     self.assertEqual(data['success'], True)
+    #     self.assertEqual(data['deleted'], 2)
+    #     self.assertTrue(data['total_questions'])
+    #     self.assertEqual(question, None)
+
+    def test_delete_question_failure(self):
+        res = self.client().delete('/questions/1000')
+        data = json.loads(res.data)
+        
         self.assertEqual(res.status_code, 200)
-        self.assertEqual(data['success'], True)
-        self.assertEqual(data['deleted'], 2)
-        self.assertTrue(data['total_questions'])
-        self.assertEqual(question, None)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 422)
+        self.assertEqual(data['message'], 'unprocessable')
 
-    def test_create_question(self):
+
+    def test_create_question_success(self):
         res = self.client().post('/questions', json = self.new_question)
         data = json.loads(res.data)
 
@@ -77,6 +97,16 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['success'], True)
         self.assertTrue(data['created'])
         self.assertTrue(len(data['questions']))
+
+    def test_create_question_failure(self):
+        res = self.client().post('/questions/100', json = self.new_question)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 405)
+        self.assertEqual(data['message'], 'Method not allowed')
+
 
     def test_get_questions_search_with_result(self):
         res = self.client().post('/questions/search', json = {'searchTerm': "team"})
@@ -95,8 +125,30 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['total_questions'],0)
         self.assertEqual(len(data['questions']), 0)
 
-    # def test_quizzes(self):
-    #     res = self.client().
+    def test_quizzes_success(self):
+        quiz_data = {
+            'previous_questions': [13, 14],
+            'quiz_category': {
+                'type': 'Geography',
+                'id': 3
+            }
+        }
+        res = self.client().post('/quizzes', json=quiz_data)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(data['success'], True)
+
+    def test_quizzes_failure(self):
+       
+        res = self.client().post('/quizzes', json={})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['error'], 500)
+        self.assertEqual(data['message'], 'Server error')
+
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
